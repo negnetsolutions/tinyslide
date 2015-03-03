@@ -129,9 +129,9 @@
         'touchend': _.touchEnd
       });
 
-      _.slideContainer.on({
-        'webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend': _.transitionEnd
-      });
+      // _.slideContainer.on({
+      //   'webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend': _.transitionEnd
+      // });
 
       _.$w.resize(function(){
         _.debounce && clearTimeout(_.debounce);
@@ -207,6 +207,7 @@
         $(this).toggleClass('active', (i == _.currentSlideIndex ));
       });
 
+      _.transitionEnd();
     }
 
     this.init();
