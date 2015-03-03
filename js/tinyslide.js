@@ -2,6 +2,7 @@
 
   var defaults = {
     autoplay: 4000,
+    animationDuration: 800,
     hoverPause: true,
     slide: ">figure",
     slides: ">aside",
@@ -19,7 +20,7 @@
       this.slides = $(this.options.slide, this.slideContainer),
       this.numSlides = this.slides.length,
       this.currentSlideIndex = 0,
-      this.timer,
+      this.autoplayTimer,
       this.debounce,
       this.slideWidth,
       this.slideNavigator,
@@ -63,13 +64,13 @@
           return;
         }
 
-        _.timer = setTimeout(function(){
+        _.autoplayTimer = setTimeout(function(){
           _.api.nextSlide();
         }, _.options.autoplay);
       },
 
       pause: function(){
-        clearTimeout(_.timer);
+        clearTimeout(_.autoplayTimer);
       }
 
     }
@@ -120,18 +121,14 @@
     this.init = function(){
       _.dimensions();
       _.drawNavigator();
+      _.setTransition();
       _.showSlide();
-      _.api.play();
 
       _.container.on({
         'touchstart': _.touchStart,
         'touchmove': _.touchMove,
         'touchend': _.touchEnd
       });
-
-      // _.slideContainer.on({
-      //   'webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend': _.transitionEnd
-      // });
 
       _.$w.resize(function(){
         _.debounce && clearTimeout(_.debounce);
@@ -169,51 +166,61 @@
     }
 
     this.dimensions = function(){
-      var width = 0;
-
       _.slideWidth = _.container.width();
-
-      _.slides.each(function(i, slide){
-        $(slide).width(_.slideWidth);
-      });
-
+      _.slides.width(_.slideWidth);
       _.slideContainer.width( ( _.slideWidth * _.numSlides) );
     }
 
+    this.setTransition = function(){
+      _.slideContainer.css(_.getPrefix()+'transition',_.getPrefix()+'transform '+_.options.animationDuration+'ms cubic-bezier(0.365, 0.84, 0.44, 1)');
+    }
+
     this.translate = function(x){
-      _.slideContainer.css('transform','translateX('+x+'px)');
+      _.slideContainer.css(_.getPrefix()+'transform','translateX('+x+'px)');
     }
+    this.getPrefix = function () {
 
-    this.transitionEnd = function(){
+			if (!window.getComputedStyle) return '';
 
-      _.slides.each(function(i, slide){
-        var $slide = $(slide);
-        $slide.toggleClass('active', (i == _.currentSlideIndex ));
-      });
+			var styles = window.getComputedStyle(document.documentElement, '');
+			return '-' + (Array.prototype.slice
+				.call(styles)
+				.join('')
+				.match(/-(moz|webkit|ms)-/) || (styles.OLink === '' && ['', 'o'])
+			)[1] + '-';
 
-      _.options.afterTransition(this);
+		}
 
-      _.api.play();
-    }
     this.showSlide = function(){
 
       _.api.pause();
 
-      _.options.beforeTransition(this);
+      _.options.beforeTransition.call(this);
 
       _.translate( -1 * _.currentSlideIndex * _.slideWidth );
 
-      _.slideNavigatorItems.each(function(i){
-        $(this).toggleClass('active', (i == _.currentSlideIndex ));
+      _.slideNavigatorItems.eq(_.currentSlideIndex).addClass('active')
+        .siblings().removeClass('active');
+
+      _.afterAnimation(function(){
+        _.slides.eq(_.currentSlideIndex).addClass('active')
+          .siblings().removeClass('active');
+
+        _.options.afterTransition.call(this);
       });
 
-      _.transitionEnd();
+      _.api.play();
+    }
+
+    this.afterAnimation = function(callback){
+      setTimeout(function(){
+        callback();
+      }, _.options.animationDuration);
     }
 
     this.init();
 
     return this.api;
-
   }
 
   $.fn["tiny"] = function(options) {
