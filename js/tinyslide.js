@@ -122,6 +122,7 @@
       _.dimensions();
       _.drawNavigator();
       _.setTransition();
+      _.slides.eq(0).addClass('active')
       _.showSlide();
 
       _.container.on({
@@ -199,8 +200,10 @@
 
       _.translate( -1 * _.currentSlideIndex * _.slideWidth );
 
-      _.slideNavigatorItems.eq(_.currentSlideIndex).addClass('active')
-        .siblings().removeClass('active');
+      if( _.numSlides > 1 ){
+        _.slideNavigatorItems.eq(_.currentSlideIndex).addClass('active')
+          .siblings().removeClass('active');
+      }
 
       _.afterAnimation(function(){
         _.slides.eq(_.currentSlideIndex).addClass('active')
