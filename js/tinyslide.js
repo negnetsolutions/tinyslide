@@ -83,7 +83,7 @@
       }
 
       // where in the viewport was touched
-      _.dragStart = event.clientX;
+      _.dragStart = {x: event.clientX, y: event.clientY};
 
       // make sure we're dealing with a slide
       _.dragTarget = _.slides.eq(_.currentSlideIndex)[0];
@@ -93,15 +93,25 @@
 
     this.touchMove = function(event){
 
-      if (_.dragStart === null) { return; }
+      if (_.dragStart.x === null) { return; }
+
       if (event.originalEvent.touches) {
         event = event.originalEvent.touches[0];
       }
 
-      _.delta = _.dragStart - event.clientX;
-      _.percentage = _.delta / _.$w.width();
+      _.delta = {x: _.dragStart.x - event.clientX, y: _.dragStart.y - event.clientY};
+      _.percentage = _.delta.x / _.$w.width();
 
-      // Don't drag element. This is important.
+      //if we are mostly scrolling up or down, let browser do the work
+      if( Math.abs(_.delta.y) > 2 ){
+        return true;
+      }
+
+      //otherwise, let's scroll the slider
+      if(_.numSlides > 1){
+        _.translate( _.getCurrentSlidePosition() - _.delta.x );
+      }
+
       return false;
     }
     this.touchEnd = function(){
@@ -174,6 +184,11 @@
 
     this.setTransition = function(){
       _.slideContainer.css(_.getPrefix()+'transition',_.getPrefix()+'transform '+_.options.animationDuration+'ms cubic-bezier(0.365, 0.84, 0.44, 1)');
+    }
+
+    this.getCurrentSlidePosition = function(){
+      var matrix = _.slideContainer.css('transform').replace(/[^0-9\-.,]/g, '').split(',');
+      return parseInt(matrix[12] || matrix[4]);
     }
 
     this.translate = function(x){
