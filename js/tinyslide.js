@@ -6,6 +6,7 @@
     hoverPause: true,
     slide: ">figure",
     slides: ">aside",
+    debug: false,
     beforeTransition: function(){},
     afterTransition: function(){}
   };
@@ -64,13 +65,16 @@
           return;
         }
 
+        _.api.pause();
         _.autoplayTimer = setTimeout(function(){
           _.api.nextSlide();
         }, _.options.autoplay);
       },
 
       pause: function(){
-        clearTimeout(_.autoplayTimer);
+        if(typeof _.autoplayTimer !== "undefined"){
+          clearTimeout(_.autoplayTimer);
+        }
       }
 
     }
@@ -128,18 +132,29 @@
       percentage = 0;
     }
 
+    this.debugMsg = function(message){
+      if(_.options.debug == true){
+        console.log(message);
+      }
+    }
+
     this.init = function(){
       _.dimensions();
       _.drawNavigator();
       _.setTransition();
       _.slides.eq(0).addClass('active')
-      _.showSlide();
+      _.api.getSlide(0);
 
       _.container.on({
         'touchstart': _.touchStart,
         'touchmove': _.touchMove,
-        'touchend': _.touchEnd
+        'touchend': _.touchEnd,
       });
+
+      if(_.options.hoverPause == true){
+        _.container.on('mouseover',_.api.pause);
+        _.container.on('mouseout',_.api.play);
+      }
 
       _.$w.resize(function(){
         _.debounce && clearTimeout(_.debounce);
