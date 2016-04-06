@@ -151,6 +151,18 @@
         'touchend': _.touchEnd,
       });
 
+      if(document.addEventListener){
+        document.addEventListener("visibilitychange", function(e) {
+          if(document.visibilityState == 'hidden') {
+            // page is hidden
+            _.api.pause();
+          } else {
+            // page is visible
+            _.api.play();
+          }
+        });
+      }
+
       if(_.options.hoverPause == true){
         _.container.on('mouseover',_.api.pause);
         _.container.on('mouseout',_.api.play);
