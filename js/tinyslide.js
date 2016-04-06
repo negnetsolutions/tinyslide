@@ -156,8 +156,10 @@
           if(document.visibilityState == 'hidden') {
             // page is hidden
             _.api.pause();
+            _.pauseTransition();
           } else {
             // page is visible
+            _.setTransition();
             _.api.play();
           }
         });
@@ -207,6 +209,10 @@
       _.slideWidth = _.container.width();
       _.slides.width(_.slideWidth);
       _.slideContainer.width( ( _.slideWidth * _.numSlides) );
+    }
+
+    this.pauseTransition = function(){
+      _.slideContainer.css(_.getPrefix()+'transition','non');
     }
 
     this.setTransition = function(){
